@@ -485,6 +485,9 @@ UPowerState UPowerService::readDefaultState() const {
 
   const auto* device = defaultSystemBattery();
   if (device == nullptr) {
+    device = lowestPeripheralBattery();
+  }
+  if (device == nullptr) {
     return next;
   }
 
@@ -669,6 +672,17 @@ const UPowerDeviceInfo* UPowerService::defaultSystemBattery() const noexcept {
     return &*m_dummyDevice;
   }
   return nullptr;
+}
+
+const UPowerDeviceInfo* UPowerService::lowestPeripheralBattery() const {
+  const UPowerDeviceInfo* lowest = nullptr;
+  for (const auto& device : m_devices) {
+    if (isPeripheralBattery(device.info)
+        && (lowest == nullptr || device.info.state.percentage < lowest->state.percentage)) {
+      lowest = &device.info;
+    }
+  }
+  return lowest;
 }
 
 const UPowerDeviceInfo* UPowerService::deviceForSelector(std::string_view selector) const {

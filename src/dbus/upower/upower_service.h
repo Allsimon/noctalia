@@ -201,6 +201,7 @@ private:
   [[nodiscard]] RefreshChanges refreshDevice(std::string_view devicePath, bool refreshChargeLimit);
   [[nodiscard]] RefreshChanges refreshTrackedDevice(TrackedDevice& device, bool refreshChargeLimit);
   [[nodiscard]] RefreshChanges refreshDeviceStates();
+  [[nodiscard]] const UPowerDeviceInfo* lowestPeripheralBattery() const;
 
   SystemBus& m_bus;
   std::unique_ptr<sdbus::IProxy> m_upowerProxy;

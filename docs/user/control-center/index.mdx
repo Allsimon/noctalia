@@ -219,7 +219,7 @@ The Power tab consolidates battery and power-management status, backed by UPower
 - **Battery Health** - current full-charge capacity as a percentage of the original design capacity
 - **Connected Devices** - battery levels for peripherals such as Bluetooth mice, keyboards, and headsets
 
-Sections appear only when their data is available: the battery and health sections require a system battery, the profile selector requires `power-profiles-daemon`, and the connected-devices section appears when peripherals report a battery. The tab itself is hidden on systems where neither UPower nor `power-profiles-daemon` is running.
+Sections appear only when their data is available: the battery section shows the system battery (or the lowest-charged peripheral when there is none), the health section requires a system battery, the profile selector requires `power-profiles-daemon`, and the connected-devices section appears when peripherals report a battery. The tab itself is hidden on systems where neither UPower nor `power-profiles-daemon` is running.
 
 ## Related IPC
 
