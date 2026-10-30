@@ -470,15 +470,15 @@ void UPowerService::rescanDevices() {
   }
 }
 
-UPowerState UPowerService::readDefaultState() const {
-  UPowerState next;
+UPowerService::DefaultState UPowerService::readDefaultState() const {
+  DefaultState next;
 
-  next.onBattery = getPropertyOr<bool>(*m_upowerProxy, kUpowerInterface, "OnBattery", false);
+  next.state.onBattery = getPropertyOr<bool>(*m_upowerProxy, kUpowerInterface, "OnBattery", false);
 
   if (m_displayDeviceProxy != nullptr) {
-    next = readDeviceState(*m_displayDeviceProxy);
-    next.onBattery = getPropertyOr<bool>(*m_upowerProxy, kUpowerInterface, "OnBattery", false);
-    if (next.isPresent) {
+    next.state = readDeviceState(*m_displayDeviceProxy);
+    next.state.onBattery = getPropertyOr<bool>(*m_upowerProxy, kUpowerInterface, "OnBattery", false);
+    if (next.state.isPresent) {
       return next;
     }
   }
@@ -486,16 +486,19 @@ UPowerState UPowerService::readDefaultState() const {
   const auto* device = defaultSystemBattery();
   if (device == nullptr) {
     device = lowestPeripheralBattery();
+    if (device != nullptr) {
+      next.peripheralPath = device->path;
+    }
   }
   if (device == nullptr) {
     return next;
   }
 
-  next = device->state;
+  next.state = device->state;
   if (m_dummyDevice && device == &*m_dummyDevice) {
     return next;
   }
-  next.onBattery = getPropertyOr<bool>(*m_upowerProxy, kUpowerInterface, "OnBattery", false);
+  next.state.onBattery = getPropertyOr<bool>(*m_upowerProxy, kUpowerInterface, "OnBattery", false);
   return next;
 }
 
@@ -760,12 +763,13 @@ void UPowerService::refreshDisplayDeviceProxy() {
 }
 
 bool UPowerService::refreshDefaultState() {
-  const UPowerState next = readDefaultState();
-  if (next == m_state) {
+  auto next = readDefaultState();
+  if (next.state == m_state && next.peripheralPath == m_statePeripheralPath) {
     return false;
   }
 
-  m_state = next;
+  m_state = next.state;
+  m_statePeripheralPath = std::move(next.peripheralPath);
   if (m_changeCallback) {
     m_changeCallback(UPowerChange{.origin = ChangeOrigin::DeviceState});
   }
@@ -823,7 +827,9 @@ void UPowerService::emitChangedIfNeeded(bool devicesChanged, bool chargeLimitCha
     return;
   }
 
-  m_state = readDefaultState();
+  auto next = readDefaultState();
+  m_state = next.state;
+  m_statePeripheralPath = std::move(next.peripheralPath);
   if (m_changeCallback) {
     m_changeCallback(UPowerChange{.origin = ChangeOrigin::DeviceState, .deviceCatalogChanged = deviceCatalogChanged});
   }
