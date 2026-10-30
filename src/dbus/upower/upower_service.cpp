@@ -674,7 +674,7 @@ const UPowerDeviceInfo* UPowerService::defaultSystemBattery() const noexcept {
   return nullptr;
 }
 
-const UPowerDeviceInfo* UPowerService::lowestPeripheralBattery() const {
+const UPowerDeviceInfo* UPowerService::lowestPeripheralBattery() const noexcept {
   const UPowerDeviceInfo* lowest = nullptr;
   for (const auto& device : m_devices) {
     if (isPeripheralBattery(device.info)
